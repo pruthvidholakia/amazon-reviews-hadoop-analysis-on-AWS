@@ -1,0 +1,3 @@
+hdfs dfs -ls /home/ubuntu/hadoop_logs/ubuntu/logs/
+
+hdfs dfs -ls /home/ubuntu/hadoop_logs/ubuntu/logs/application_1742508431928_0001/

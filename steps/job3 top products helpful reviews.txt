@@ -1,0 +1,33 @@
+Step 1: Upload the Java File to EC2
+scp -i "C:\Users\pruth\Downloads\644midProject.pem" "C:\Users\pruth\Desktop\DS644\mid-project\jobs\TopProductsHelpfulReviews.java" ubuntu@54.167.79.219:/home/ubuntu/big_data_project/jobs/job3_top_products_helpful_reviews/
+
+stop-all.sh
+start-all.sh
+
+Step 3: Navigate to the Job Directory
+cd ~/big_data_project/jobs/job3_top_products_helpful_reviews/
+
+Step 4: Verify the File Exists
+ls
+
+Step 5: Compile the Java Code
+javac -classpath `hadoop classpath` -d . TopProductsHelpfulReviews.java
+
+Step 6: Verify Compiled Class Files
+ls
+
+Step 7: Create a JAR File
+jar -cvf TopProductsHelpfulReviews.jar TopProductsHelpfulReviews*.class
+
+Step 8: Verify JAR Contents
+jar -tf TopProductsHelpfulReviews.jar
+
+Step 9: Remove Previous Output (If Exists)
+hdfs dfs -rm -r /user/ubuntu/output/job3_top_products_helpful_reviews
+
+Step 10: Run the Hadoop Job
+hadoop jar ~/big_data_project/jobs/job3_top_products_helpful_reviews/TopProductsHelpfulReviews.jar TopProductsHelpfulReviews /user/ubuntu/input/appliance_chunk.jsonl /user/ubuntu/output/job3_top_products_helpful_reviews
+
+
+with appliances data
+hadoop jar ~/big_data_project/jobs/job3_top_products_helpful_reviews/TopProductsHelpfulReviews.jar TopProductsHelpfulReviews /user/ubuntu/input/Appliances.jsonl /user/ubuntu/output/job3_top_products_helpful_reviews

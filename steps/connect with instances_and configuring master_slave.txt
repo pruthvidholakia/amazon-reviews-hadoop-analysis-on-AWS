@@ -1,0 +1,14 @@
+connect with instances
+
+For first time when connecting run below cmd to copy key (.pem) to .ssh location from Downloads
+~ sudo cp --preserve=mode /mnt/c/Users/pruth/Downloads/644midProject.pem ~/.ssh/
+~ sudo chown $(whoami):$(whoami) ~/.ssh/644midProject.pem
+
+
+run this cmd to connect to master/slave
+~ chmod 400 ~/.ssh/644midProject.pem
+~ ssh -i ~/.ssh/644midProject.pem ubuntu@ec2-23-20-14-138.compute-1.amazonaws.com
+
+
+
+vol-0df6d569d3c0bb069

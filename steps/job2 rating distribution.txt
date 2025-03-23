@@ -1,0 +1,37 @@
+# below cmd to upload java file to it's job dir in master
+scp -i "C:\Users\pruth\Downloads\644midProject.pem" "C:\Users\pruth\Desktop\DS644\mid-project\jobs\RatingDistributionAnalysis.java" ubuntu@54.167.79.219:/home/ubuntu/big_data_project/jobs/job2_rating_distribution/
+
+stop-all.sh
+start-all.sh
+
+# Step 1: Navigate to the job directory
+cd ~/big_data_project/jobs/job2_rating_distribution/
+
+# Step 2: Verify the file is present
+ls
+
+# Step 3: Compile the Java code
+javac -classpath `hadoop classpath` -d . RatingDistributionAnalysis.java
+
+# Step 4: Verify compiled class files are created
+ls
+
+# Step 5: Create a JAR file
+jar -cvf RatingDistributionAnalysis.jar RatingDistributionAnalysis*.class
+
+
+# Step 6: Verify the JAR contents:
+jar -tf RatingDistributionAnalysis.jar
+
+# Step 7: Check the output (Ensure previous output is removed if needed)
+hdfs dfs -rm -r /user/ubuntu/output/job2_rating_distribution
+
+# Step 8: run job
+hadoop jar ~/big_data_project/jobs/job2_rating_distribution/RatingDistributionAnalysis.jar RatingDistributionAnalysis /user/ubuntu/input/appliance_chunk.jsonl /user/ubuntu/output/job2_rating_distribution
+
+with appliances data
+hadoop jar ~/big_data_project/jobs/job2_rating_distribution/RatingDistributionAnalysis.jar RatingDistributionAnalysis /user/ubuntu/input/Appliances.jsonl /user/ubuntu/output/job2_rating_distribution
+
+
+#step 9: Check the Results After Execution
+hdfs dfs -cat /user/ubuntu/output/job2_rating_distribution/part-r-00000

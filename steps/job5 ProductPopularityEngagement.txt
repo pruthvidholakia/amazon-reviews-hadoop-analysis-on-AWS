@@ -1,0 +1,67 @@
+🔹 How It Works
+1️⃣ Mapper (PopularityMapper)
+Reads JSON input.
+Extracts asin (Product ID), rating, and helpful votes.
+
+Emits:
+(asin → [rating, helpful_vote, 1])
+
+rating → Used to calculate the average rating.
+helpful_vote → Summed up for total helpful votes.
+1 → Counts the total number of reviews.
+
+2️⃣ Reducer (PopularityReducer)
+Aggregates data for each product (asin):
+Computes total number of reviews.
+Computes total helpful votes.
+Computes average rating (totalRating / totalReviews).
+
+Emits:
+(asin → [totalReviews, avgRating, totalHelpfulVotes])
+
+Used to rank the top 20 most engaging products.
+
+3️⃣ Driver Class
+Configures and runs the MapReduce job.
+Takes input JSON file and writes output to HDFS.
+Helps identify the most reviewed, discussed, and well-rated products.
+📌 This job helps find the most engaging appliances based on reviews and helpfulness! 🚀
+
+
+Upload
+scp -i "C:\Users\pruth\Downloads\644midProject.pem" "C:\Users\pruth\Desktop\DS644\mid-project\jobs\ProductPopularityEngagement.java" ubuntu@23.20.14.138:/home/ubuntu/big_data_project/jobs/job5_product_popularity_engagement/
+
+#Step 2: Compile & Execute the Job:
+
+cd ~/big_data_project/jobs/job5_product_popularity_engagement/
+
+ls
+
+javac -classpath `hadoop classpath` -d . ProductPopularityEngagement.java
+
+ls
+
+# Package into a JAR file
+jar -cvf ProductPopularityEngagement.jar ProductPopularityEngagement*.class
+
+jar -tf ProductPopularityEngagement.jar
+
+stop-all.sh
+start-all.sh
+
+hdfs dfs -rm -r /user/ubuntu/output/job5_product_popularity_engagement
+
+
+hadoop jar ~/big_data_project/jobs/job5_product_popularity_engagement/ProductPopularityEngagement.jar ProductPopularityEngagement /user/ubuntu/input/appliance_chunk.jsonl /user/ubuntu/output/job5_product_popularity_engagement
+
+with appliances data
+hadoop jar ~/big_data_project/jobs/job5_product_popularity_engagement/ProductPopularityEngagement.jar ProductPopularityEngagement /user/ubuntu/input/Appliances.jsonl /user/ubuntu/output/job5_product_popularity_engagement
+
+
+hdfs dfs -ls /user/ubuntu/output/job5_product_popularity_engagement/
+hdfs dfs -cat /user/ubuntu/output/job5_product_popularity_engagement/part-r-00000
+
+
+
+
+

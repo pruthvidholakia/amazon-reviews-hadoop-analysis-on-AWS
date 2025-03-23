@@ -1,0 +1,364 @@
+~ sudo apt update
+~ sudo apt install openjdk-8-jdk -y
+~ java -version
+
+
+#find the java path: Moves you to the directory where Java is installed.#
+~ cd /usr/lib/jvm
+~ ls
+
+#Set JAVA_HOME in ~/.bash_profile: Adds this line to your ~/.bash_profile so that Java is available every time you log in.  Sets the JAVA_HOME variable to the correct Java installation directory.#
+~ echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> ~/.bash_profile  
+
+#source reloads ~/.bash_profile immediately without needing to log out and log back in.#
+~ source ~/.bash_profile
+
+# Verify That JAVA_HOME is Set#
+~ echo $JAVA_HOME
+
+
+#Install Hadoop in master node only and move it to /home/ubuntu/Hadoop for cleaner, centralized directory
+~ cd ~
+~ wget https://archive.apache.org/dist/hadoop/common/hadoop-2.6.5/hadoop-2.6.5.tar.gz
+~ tar -xvzf hadoop-2.6.5.tar.gz
+~ mv hadoop-2.6.5 /home/ubuntu/hadoop
+~ ls /home/ubuntu/Hadoop
+
+#Now we need to set up environment variables on all nodes (Master + Slaves).
+~ nano ~/.bash_profile
+
+#copy paste this all cmd
+~ 
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+export HADOOP_HOME=/home/ubuntu/hadoop-2.6.5
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin
+
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+~
+
+~ source ~/.bash_profile
+
+#verify
+~ echo $JAVA_HOME
+~ echo $HADOOP_HOME
+
+
+#let's configure Hadoop in master node (make sure that if you have moved Hadoop-2.6.5 to centralized folder you use Hadoop instead of hadoop-2.6.5) I will be using Hadoop
+
+
+Run this on the Master Node:
+~ nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/hadoop-env.sh
+
+
+ Find the line that sets JAVA_HOME and replace it with this cmd
+~ export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 (save it by ctrl+x, then Y, then ENTER)
+
+
+# Configure core-site.xml file
+~ nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/core-site.xml
+
+~
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://master:9000</value>
+    </property>
+</configuration>
+
+~(replace with this lines), save and exit
+
+
+# Configure hdfs-site.xml
+~ nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/hdfs-site.xml
+
+~
+<configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>3</value>
+    </property>
+</configuration>
+
+~ (Replace)
+
+ 
+# Configure mapred-site.xml (Use YARN for MapReduce)
+~ cp /home/ubuntu/hadoop-2.6.5/etc/hadoop/mapred-site.xml.template /home/ubuntu/hadoop-2.6.5/etc/hadoop/mapred-site.xml
+nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/mapred-site.xml
+
+~
+<configuration>
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
+</configuration>
+
+~
+
+
+Configure yarn-site.xml (Enable ResourceManager)
+
+~ nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/yarn-site.xml
+
+~
+<configuration>
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+        <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>master:8032</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.scheduler.address</name>
+        <value>master:8030</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.resource-tracker.address</name>
+        <value>master:8035</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.admin.address</name>
+        <value>master:8033</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.webapp.address</name>
+        <value>master:8088</value>
+    </property>
+
+<!-- ✅ Added Log Aggregation Settings -->
+    <property>
+        <name>yarn.log-aggregation-enable</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>yarn.nodemanager.remote-app-log-dir</name>
+        <value>/tmp/logs</value>
+    </property>
+
+    <property>
+        <name>yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds</name>
+        <value>3600</value>
+    </property>
+</configuration>
+
+~
+
+
+# Create Log Storage Directory
+~
+mkdir -p /home/ubuntu/hadoop_logs
+sudo chown -R ubuntu:ubuntu /home/ubuntu/hadoop_logs
+~
+
+# Set Up Automatic Log Cleanup
+~ sudo nano /etc/logrotate.d/hadoop_logs
+
+~
+/home/ubuntu/hadoop_logs/* {
+    daily
+    rotate 7
+    missingok
+    compress
+    delaycompress
+    notifempty
+    create 640 ubuntu ubuntu
+}
+~(Paste this configuration)
+
+
+###########################
+Challenge: so when we completed the word count we encounter error in java code (it was in our logic). I noticed what if when I am working with huge dataset like terabytes or petabytes and start getting error in different slaves. To resolve this I enabled "logs" in yarn xml and store logs in /home/ubuntu/hadoop_logs.
+###########################
+
+# configure slaves File
+
+~ nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/slaves
+~
+slave1
+slave2
+slave3
+
+~ (replace)
+
+
+# Copy Hadoop to All Slaves
+
+~
+scp -r /home/ubuntu/hadoop-2.6.5 slave1:/home/ubuntu/
+scp -r /home/ubuntu/hadoop-2.6.5 slave2:/home/ubuntu/
+scp -r /home/ubuntu/hadoop-2.6.5 slave3:/home/ubuntu/
+
+~
+
+
+#  Verify Hadoop is Copied Correctly
+
+~
+ssh slave1
+ls -l /home/ubuntu/hadoop-2.6.5
+
+~ (check it for all the slaves)
+
+
+# Format the NameNode (Master Only)
+~ hdfs namenode -format
+
+
+#  Start Hadoop Services
+~ start-dfs.sh
+
+# start YARN (ResourceManager + NodeManagers)
+~ start-yarn.sh
+
+
+# Check Master Node
+~ jps
+
+# check slave
+~ ssh slave1
+~ jps
+
+
+# while checking all node I got error when I generated report (hdfs dfsadmin -report) where namenode is missing in masternode to fix it below steps
+
+# Check for Errors in NameNode Logs
+~ cat /home/ubuntu/hadoop-2.6.5/logs/hadoop-ubuntu-namenode-*.log | tail -50
+
+# recreate the Missing Storage Directory
+~ sudo mkdir -p /tmp/hadoop-ubuntu/dfs/name
+~ sudo chown -R ubuntu:ubuntu /tmp/hadoop-ubuntu
+
+~ hdfs namenode -format
+
+#############################################
+always stop and start dfs and yarn to run job
+#############################################
+~ stop-dfs.sh
+~ stop-yarn.sh
+
+~ start-dfs.sh
+
+~ start-yarn.sh
+~ jps
+
+
+# I was still getting error of missing namenode if I close my cluster and reboot it or restart it next day. Then I realize that I had stored NameNode metadata in /tmp/, which gets cleared when the system restarts. so below steps for permanent fix
+~ nano /home/ubuntu/hadoop-2.6.5/etc/hadoop/hdfs-site.xml
+
+#add below lines in hdfs-site.xml
+<property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:/home/ubuntu/hadoop_data/namenode</value>
+    </property>
+
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:/home/ubuntu/hadoop_data/datanode</value>
+    </property>
+
+Save and exit (Ctrl + X, then Y, then Enter)
+
+
+#Since we changed the storage path, create the new directories:
+~ mkdir -p /home/ubuntu/hadoop_data/namenode
+~ mkdir -p /home/ubuntu/hadoop_data/datanode
+
+#Set proper ownership:
+~ sudo chown -R ubuntu:ubuntu /home/ubuntu/hadoop_data
+
+
+###############
+let's create the first job to count the words in .txt file (writing our own CustomWordCount.java)
+###############
+
+# I wrote CustomWordCount.java in local and then uploaded to master node
+~ scp -i <your-key.pem-location> <CustomWordCount.java-location> ubuntu@ec2-54-90-240-6.compute-1.amazonaws.com:/home/ubuntu/
+
+#compile java program
+javac -classpath $(hadoop classpath) -d . CustomWordCount.java
+
+# Create a Clean JAR with Only .class Files
+~ jar -cvf CustomWordCount.jar CustomWordCount*.class
+
+# Verify the JAR Contains Only the Required Files
+~ jar -tf CustomWordCount.jar
+
+#remove the result after viewing result
+~ hdfs dfs -rm -r /user/ubuntu/output
+
+
+
+
+# let's create the first job to count the words in .txt file (using inbuilt count method)
+
+
+
+# Create an Input Directory in HDFS
+~ hdfs dfs -mkdir -p /user/ubuntu/input
+
+# upload the sample file 
+~ hdfs dfs -put /home/ubuntu/hadoop-2.6.5/LICENSE.txt /user/ubuntu/input/
+
+# Run a WordCount MapReduce Job
+~ hadoop jar /home/ubuntu/hadoop-2.6.5/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.6.5.jar wordcount /user/ubuntu/input /user/ubuntu/output
+
+
+#check the output
+~ hdfs dfs -ls /user/ubuntu/output
+# if it says _SUCCESS the your job has successfully been done
+
+
+#View the result
+~ hdfs dfs -cat /user/ubuntu/output/part-r-00000
+
+
+
+#remove the result after viewing result
+~ hdfs dfs -rm -r /user/ubuntu/output
+
+
+# now let's organise every file, job files has JAR file to perfume each jobs and hdfs has datasets and output dir to store output of each job separately
+
+~ mkdir -p ~/big_data_project
+
+~ mkdir -p ~/big_data_project/jobs/job0_wordcount
+~ mkdir -p ~/big_data_project/jobs/job1_unique_products
+~ mkdir -p ~/big_data_project/jobs/job2_rating_distribution
+~ mkdir -p ~/big_data_project/jobs/job3_top_products_helpful_reviews
+~ mkdir -p ~/big_data_project/jobs/job4_verified_vs_unverified
+~ mkdir -p ~/big_data_project/jobs/job5_product_popularity_engagement
+
+# upload the dataset to your master EC2 and then move it to hdfs input
+~ hdfs dfs -put ~/Appliances.jsonl /user/ubuntu/input/
+~ hdfs dfs -put ~/appliance_chunk.jsonl /user/ubuntu/input/
+## now you can rm dataset from local ec2 as it has been moved to hdfs to avoid 2 copies
+~ rm ~/Appliances.jsonl
+~ rm ~/appliance_chunk.jsonl
+
+# Create the main output directory to store output in respected job dir
+~ hdfs dfs -mkdir -p /user/ubuntu/output
+
+# Create separate output folders for each job
+~ hdfs dfs -mkdir -p /user/ubuntu/output/job0_wordcount
+~ hdfs dfs -mkdir -p /user/ubuntu/output/job1_unique_products
+~ hdfs dfs -mkdir -p /user/ubuntu/output/job2_rating_distribution
+~ hdfs dfs -mkdir -p /user/ubuntu/output/job3_top_products_helpful_reviews
+~ hdfs dfs -mkdir -p /user/ubuntu/output/job4_verified_vs_unverified
+~ hdfs dfs -mkdir -p /user/ubuntu/output/job5_product_popularity_engagement
+
+
+
+

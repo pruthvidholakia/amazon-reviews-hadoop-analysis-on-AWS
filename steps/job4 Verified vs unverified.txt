@@ -1,0 +1,46 @@
+📌 Java MapReduce Job for Verified vs Unverified Purchase Analysis
+This Hadoop MapReduce job analyzes verified vs. unverified reviews to evaluate review credibility.
+
+🔹 How It Works
+1️⃣ Mapper (VerifiedMapper)
+Reads JSON input.
+Extracts "verified_purchase" field (true or false).
+Emits:
+"Verified" → 1 (if true)
+"Unverified" → 1 (if false)
+2️⃣ Reducer (VerifiedReducer)
+Sums up the total count for each category:
+"Verified" → Total Verified Reviews
+"Unverified" → Total Unverified Reviews
+3️⃣ Driver Class
+Configures and runs the MapReduce job.
+Takes input JSON file and writes output to HDFS.
+
+
+#Step 1:  Upload this file to its job folder (job4_verified_vs_unverified):
+scp -i "C:\Users\pruth\Downloads\644midProject.pem" "C:\Users\pruth\Desktop\DS644\mid-project\jobs\VerifiedVsUnverifiedAnalysis.java" ubuntu@54.167.79.219:/home/ubuntu/big_data_project/jobs/job4_verified_vs_unverified/
+
+#Step 2: Compile & Execute the Job:
+
+cd ~/big_data_project/jobs/job4_verified_vs_unverified/
+
+ls
+
+javac -classpath `hadoop classpath` -d . VerifiedVsUnverifiedAnalysis.java
+
+ls
+
+jar -cvf VerifiedVsUnverifiedAnalysis.jar VerifiedVsUnverifiedAnalysis*.class
+
+jar -tf VerifiedVsUnverifiedAnalysis.jar
+
+hdfs dfs -rm -r /user/ubuntu/output/job4_verified_vs_unverified
+
+hadoop jar VerifiedVsUnverifiedAnalysis.jar VerifiedVsUnverifiedAnalysis /user/ubuntu/input/appliance_chunk.jsonl /user/ubuntu/output/job4_verified_vs_unverified
+
+with appliances data
+hadoop jar ~/big_data_project/jobs/job4_verified_vs_unverified/VerifiedVsUnverifiedAnalysis.jar VerifiedVsUnverifiedAnalysis /user/ubuntu/input/Appliances.jsonl /user/ubuntu/output/job4_verified_vs_unverified
+
+
+hdfs dfs -cat /user/ubuntu/output/job4_verified_vs_unverified/part-r-00000
+

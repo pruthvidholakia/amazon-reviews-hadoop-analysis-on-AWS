@@ -1,0 +1,9 @@
+cd ~/big_data_project/jobs/job0_wordcount/
+
+hdfs dfs -rm -r /user/ubuntu/output/job0_wordcount
+
+hadoop jar ~/big_data_project/jobs/job0_wordcount/CustomWordCount.jar CustomWordCount /user/ubuntu/input/appliance_chunk.jsonl /user/ubuntu/output/job0_wordcount
+
+hdfs dfs -ls /user/ubuntu/output/job0_wordcount/
+
+hdfs dfs -cat /user/ubuntu/output/job0_wordcount/part-r-00000 | head -n 50

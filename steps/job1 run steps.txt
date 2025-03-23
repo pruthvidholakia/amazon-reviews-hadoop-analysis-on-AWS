@@ -1,0 +1,17 @@
+# below cmd to upload java file to it's job dir in master
+scp -i "C:\Users\pruth\Downloads\644midProject.pem" "C:\Users\pruth\Desktop\DS644\mid-project\jobs\UniqueProductsCount.java" ubuntu@54.167.79.219:/home/ubuntu/big_data_project/jobs/job1_unique_products/
+
+hdfs dfs -rm -r /user/ubuntu/output/job1_unique_products
+
+hadoop jar ~/big_data_project/jobs/job1_unique_products/UniqueProductsCount.jar UniqueProductsCount /user/ubuntu/input/appliance_chunk.jsonl /user/ubuntu/output/job1_unique_products
+
+with appliances data
+hadoop jar ~/big_data_project/jobs/job1_unique_products/UniqueProductsCount.jar UniqueProductsCount /user/ubuntu/input/Appliances.jsonl /user/ubuntu/output/job1_unique_products
+
+
+hdfs dfs -ls /user/ubuntu/output/job1_unique_products
+hdfs dfs -cat /user/ubuntu/output/job1_unique_products/part-r-00000
+
+
+stop-all.sh
+start-all.sh
