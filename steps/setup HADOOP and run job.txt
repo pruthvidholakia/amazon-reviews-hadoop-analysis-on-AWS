@@ -3,17 +3,17 @@
 ~ java -version
 
 
-#find the java path: Moves you to the directory where Java is installed.#
+#find the java path: Moves you to the directory where Java is installed.
 ~ cd /usr/lib/jvm
 ~ ls
 
-#Set JAVA_HOME in ~/.bash_profile: Adds this line to your ~/.bash_profile so that Java is available every time you log in.  Sets the JAVA_HOME variable to the correct Java installation directory.#
+#Set JAVA_HOME in ~/.bash_profile: Adds this line to your ~/.bash_profile so that Java is available every time you log in.  Sets the JAVA_HOME variable to the correct Java installation directory.
 ~ echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> ~/.bash_profile  
 
-#source reloads ~/.bash_profile immediately without needing to log out and log back in.#
+#source reloads ~/.bash_profile immediately without needing to log out and log back in.
 ~ source ~/.bash_profile
 
-# Verify That JAVA_HOME is Set#
+# Verify That JAVA_HOME is Set
 ~ echo $JAVA_HOME
 
 
